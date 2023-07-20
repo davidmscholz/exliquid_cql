@@ -100,7 +100,7 @@
           },
           "criteria": {
             "language": "text/cql-identifier",
-            "expression": "Aliquot"
+            "expression": "ExliquidSpecimenWithAliquot"
           }
         }
       ],
