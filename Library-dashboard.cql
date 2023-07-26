@@ -1,4 +1,4 @@
-library "Library-dashboard"
+library "exliquid-dashboard"
 using FHIR version '4.0.0'
 include FHIRHelpers version '4.0.0'
 
@@ -8,28 +8,27 @@ context Patient
 
 define Aliquot: 
   [Specimen] S
-  where not (S.identifier.system contains 'http://dktk.dkfz.de/fhir/sid/exliquid-specimen') 
-    and S.container.specimenQuantity.value > 0
+  where exists S.collection.quantity.value and exists S.parent.reference
 
 define AliquotGroupReferences: 
   flatten Aliquot S
   return S.parent.reference
 
-define AliquotGroup:
+define AliquotGroupWithAliquot:
   [Specimen] S
   where not (S.identifier.system contains 'http://dktk.dkfz.de/fhir/sid/exliquid-specimen')
     and not exists S.collection.quantity.value
     and not exists S.container.specimenQuantity.value
-    and AliquotGroupReferences contains S.id
+    and AliquotGroupReferences contains 'Specimen/' + S.id
 
 define PrimarySampleReferences:
-  flatten AliquotGroup S
+  flatten AliquotGroupWithAliquot S
   return S.parent.reference
 
 define ExliquidSpecimenWithAliquot:
   from [Specimen] PrimarySample
   where PrimarySample.identifier.system contains 'http://dktk.dkfz.de/fhir/sid/exliquid-specimen'
-  and PrimarySampleReferences contains PrimarySample.id
+  and PrimarySampleReferences contains 'Specimen/' + PrimarySample.id
 
 define InInitialPopulation:  
   exists ExliquidSpecimenWithAliquot
